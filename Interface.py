@@ -9,7 +9,7 @@ from core import VKTools
 import sqlalchemy
 import sqlalchemy as sq
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
-from main import create_tables, Viewed, add_user, check_user
+from main import create_tables, VKchat, add_user, check_user
 now = datetime.datetime.now()
 
 vk = vk_api.VkApi(token=community_token)
@@ -22,7 +22,7 @@ Base = declarative_base()
 metadata = MetaData()
 create_tables(engine)
 
-conn = psycopg2.connect(database="vk_dbase", user="postgres", password="Lisyona")
+conn = psycopg2.connect(database="VKchat", user="postgres", password="Lisyona")
 
 engine = create_engine(db_url_object)
 Base.metadata.create_all(engine)
@@ -65,19 +65,26 @@ class BotInterface():
                     named_interests = []
                     self.message_send(event.user_id, 'Выберете, что важнее: книги, музыка или интерес')
                     if event.text.lower() == 'книги':
+                        named_interests = self.params['books']
                         if self.params['books'] == None:
-                            named_interests = self.params['books']
+                            self.message_send(event.user_id, 'Назовите любимую книгу')
+                            self.vk_tools.info['id']['books'].get(event.text())
                     elif event.text.lower() == 'музыка':
+                        named_interests = self.params['music']
                         if self.params['music'] == None:
-                            named_interests = self.params['music']
+                            self.message_send(event.user_id, 'Назовите любимую музыку')
+                            self.vk_tools.info['id']['music'].get(event.text())
                     elif event.text.lower() == 'интерес':
                         named_interests = self.params['interests']
-
+                        if self.params['interests'] == None:
+                            self.message_send(event.user_id, 'Назовите свой интерес')
+                            self.vk_tools.info['id']['interests'].get(event.text())
+                            
                     self.message_send(event.user_id, 'Начинаем поиск')
                     self.worksheets = self.vk_tools.search_worksheet(self.params, self.offset)
                     worksheet = self.worksheets.pop()
-                    session.add(main(pk=record.get('pk'), **record.get('fields')))
-                    session.commit()
+                    viewed_worksheet = session.add_user(engine, event.user_id, worksheet['id'])
+                    session.commit(viewed_worksheet)
                     photos = self.vk_tools.get_photos(worksheet['id'])
                     photo_string = ''
                     for photo in photos:

@@ -11,6 +11,13 @@ import sqlalchemy as sq
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from main import create_tables, VKchat, add_user, check_user
 now = datetime.datetime.now()
+from config import DSN
+
+engine = sqlalchemy.create_engine(DSN)
+Session = sessionmaker(bind = engine)
+session = Session()
+Base = declarative_base()
+Base.metadata.create_all(engine)
 
 vk = vk_api.VkApi(token=community_token)
 longpoll = VkLongPoll(vk)

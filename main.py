@@ -18,12 +18,6 @@ engine = sqlalchemy.create_engine(DSN)
 Session = sessionmaker(bind = engine)
 session = Session()
 Base = declarative_base()
-metadata = MetaData()
-create_tables(engine)
-
-conn = psycopg2.connect(database="VKchat", user="postgres", password="Lisyona")
-
-engine = create_engine(db_url_object)
 Base.metadata.create_all(engine)
 
 class VKchat(Base):
